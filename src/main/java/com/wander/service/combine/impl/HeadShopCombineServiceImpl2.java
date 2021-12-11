@@ -12,7 +12,7 @@ import org.simplespringframework.inject.annotation.Autowired;
 import java.util.List;
 
 @Service
-public class HeadShopCombineServiceImpl implements HeadShopCombineService {
+public class HeadShopCombineServiceImpl2 implements HeadShopCombineService {
 
     @Autowired
     private HeadLineService headLineService;
