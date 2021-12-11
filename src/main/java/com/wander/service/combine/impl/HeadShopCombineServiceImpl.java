@@ -6,9 +6,11 @@ import com.wander.entity.dto.MainPageInfoDTO;
 import com.wander.service.combine.HeadShopCombineService;
 import com.wander.service.solo.HeadLineService;
 import com.wander.service.solo.ShopCategoryService;
+import org.simplespringframework.core.annotation.Service;
 
 import java.util.List;
 
+@Service
 public class HeadShopCombineServiceImpl implements HeadShopCombineService {
 
     private HeadLineService headLineService;

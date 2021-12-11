@@ -3,11 +3,13 @@ package com.wander.controller.superadmin;
 import com.wander.entity.bo.HeadLine;
 import com.wander.entity.dto.Result;
 import com.wander.service.solo.HeadLineService;
+import org.simplespringframework.core.annotation.Controller;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
+@Controller
 public class HeadLineOperationController {
     private HeadLineService headLineService;
 

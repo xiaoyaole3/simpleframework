@@ -2,9 +2,11 @@ package com.wander.service.solo.impl;
 
 import com.wander.entity.bo.HeadLine;
 import com.wander.service.solo.HeadLineService;
+import org.simplespringframework.core.annotation.Service;
 
 import java.util.List;
 
+@Service
 public class HeadLineServiceImpl implements HeadLineService {
     @Override
     public Boolean addHeadLine(HeadLine headLine) {
