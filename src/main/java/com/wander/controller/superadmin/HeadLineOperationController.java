@@ -13,7 +13,8 @@ import java.util.List;
 @Controller
 public class HeadLineOperationController {
 
-    @Autowired
+    // 这里这样做的原因是因为 在DependencyInjector类的getImplementClass函数中要求@Autowired的value要和Class的名字相同
+    @Autowired(value = "HeadLineServiceImpl")
     private HeadLineService headLineService;
 
     public Result<Boolean> addHeadLine(HttpServletRequest req, HttpServletResponse resp) {
