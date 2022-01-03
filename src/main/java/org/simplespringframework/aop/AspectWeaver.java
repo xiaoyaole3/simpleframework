@@ -8,6 +8,7 @@ import org.simplespringframework.core.BeanContainer;
 import org.simplespringframework.util.ValidationUtil;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.util.*;
 
 public class AspectWeaver {
@@ -16,7 +17,10 @@ public class AspectWeaver {
         this.beanContainer = BeanContainer.getInstance();
     }
 
-    public void doAop() {
+    /**
+     * 使用cglib动态代理方式进行AOP
+     */
+    public void doAop1() {
         // 1. 获取所有的切面类
         Set<Class<?>> aspectSet = beanContainer.getClassesByAnnotation(Aspect.class);
         // 2. 将切面类按照不同的织入目标进行切分
@@ -39,6 +43,69 @@ public class AspectWeaver {
         for (Class<? extends Annotation> category : categorizedMap.keySet()) {
             weaveByCategory(category, categorizedMap.get(category));
         }
+    }
+
+    /**
+     * 使用AspectJ的方式进行AOP
+     */
+    public void doAop2() {
+        // 1. 获取所有的切面类
+        Set<Class<?>> aspectSet = beanContainer.getClassesByAnnotation(Aspect.class);
+        if (ValidationUtil.isEmpty(aspectSet)) {
+            return;
+        }
+        // 2. 拼装AspectInfoList
+        List<AspectInfo> aspectInfoList = packAspectInfoList(aspectSet);
+        // 3. 遍历容器里的类
+        Set<Class<?>> classSet = beanContainer.getClasses();
+        for (Class<?> targetClass : classSet) {
+            // 排除AspectClass自身
+            if (targetClass.isAnnotationPresent(Aspect.class)) {
+                continue;
+            }
+            // 4. 粗筛符合条件的Aspect
+            List<AspectInfo> roughMatchedAspectList = collectRoughMatchedAspectListForSpecificClass(aspectInfoList, targetClass);
+            // 5. 尝试进行Aspect的织入
+            wrapIfNecessary(roughMatchedAspectList, targetClass);
+        }
+
+    }
+
+    private void wrapIfNecessary(List<AspectInfo> roughMatchedAspectList, Class<?> targetClass) {
+        // 1. 创建动态代理对象
+        AspectListExecutor aspectListExecutor = new AspectListExecutor(targetClass, roughMatchedAspectList);
+        Object proxyBean = ProxyCreator.createProxy(targetClass, aspectListExecutor);
+        // 2. 将动态代理对象实例添加到容器里，取代未被代理前的类实例
+        beanContainer.addBean(targetClass, proxyBean);
+    }
+
+
+    private List<AspectInfo> collectRoughMatchedAspectListForSpecificClass(List<AspectInfo> aspectInfoList, Class<?> targetClass) {
+        List<AspectInfo> result = new ArrayList<>();
+
+        for (AspectInfo aspectInfo : aspectInfoList) {
+            if (aspectInfo.getPointcutLocator().roughMatches(targetClass)) {
+                result.add(aspectInfo);
+            }
+        }
+        return result;
+    }
+
+    private List<AspectInfo> packAspectInfoList(Set<Class<?>> aspectSet) {
+        List<AspectInfo> aspectInfoList = new ArrayList<>();
+
+        for (Class<?> aspectClass : aspectSet) {
+            Order orderTag = aspectClass.getAnnotation(Order.class);
+            Aspect aspectTag = aspectClass.getAnnotation(Aspect.class);
+            String expression = aspectTag.pointcut();
+
+            DefaultAspect aspect = (DefaultAspect) beanContainer.getBean(aspectClass);
+            PointcutLocator pointcutLocator = new PointcutLocator(expression);
+
+            AspectInfo aspectInfo = new AspectInfo(orderTag.value(), aspect, pointcutLocator);
+            aspectInfoList.add(aspectInfo);
+        }
+        return aspectInfoList;
     }
 
     private void weaveByCategory(Class<? extends Annotation> category, List<AspectInfo> aspectInfos) {

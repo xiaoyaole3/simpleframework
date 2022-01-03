@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class AspectListExecutorTest {
 
-    @DisplayName(value = "Aspect sort: aspectInfoList")
+    @DisplayName(value = "Aspect1.0 sort: aspectInfoList")
     @Test
     public void sortTest() {
         List<AspectInfo> aspectInfos = new ArrayList<>();

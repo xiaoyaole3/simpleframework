@@ -9,6 +9,7 @@ import org.simplespringframework.util.ValidationUtil;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 
 public class AspectListExecutor implements MethodInterceptor {
@@ -43,8 +44,10 @@ public class AspectListExecutor implements MethodInterceptor {
     @Override
     public Object intercept(Object proxy, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
         Object returnValue = null;
+        // 根据aspectInfo中的信息对数据进行精筛
+        collectAccurateMatchedAspectList(method);
         if (ValidationUtil.isEmpty(sortedAspectInfoList)) {
-            return returnValue;
+            return returnValue = methodProxy.invokeSuper(proxy, args);
         }
 
         // 1. 按照order的顺序升序执行完所有Aspect的before方法
@@ -60,6 +63,20 @@ public class AspectListExecutor implements MethodInterceptor {
         }
 
         return returnValue;
+    }
+
+    private void collectAccurateMatchedAspectList(Method method) {
+        if (ValidationUtil.isEmpty(sortedAspectInfoList)) {
+            return;
+        }
+
+        Iterator<AspectInfo> iterator = sortedAspectInfoList.iterator();
+        while (iterator.hasNext()) {
+            AspectInfo next = iterator.next();
+            if (!next.getPointcutLocator().accurateMatches(method)) {
+                iterator.remove();
+            }
+        }
     }
 
     private void invokeAfterThrowingAdvices(Method method, Object[] args, Exception e) throws Throwable {

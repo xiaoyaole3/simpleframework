@@ -9,7 +9,8 @@ import org.simplespringframework.core.annotation.Controller;
 import java.lang.reflect.Method;
 
 @Slf4j
-@Aspect(value = Controller.class)
+//@Aspect(value = Controller.class)
+@Aspect(pointcut = "within(com.wander.controller.superadmin.*)")
 @Order(value = 9)
 public class ControllerInfoRecordAspect extends DefaultAspect {
 
