@@ -19,6 +19,7 @@ public class AspectWeaver {
 
     /**
      * 使用cglib动态代理方式进行AOP
+     * 缺点：只能针对与标注了注解的类进行织入
      */
     public void doAop1() {
         // 1. 获取所有的切面类
