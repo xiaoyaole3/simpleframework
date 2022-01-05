@@ -10,7 +10,7 @@ import java.lang.reflect.Method;
 
 @Slf4j
 //@Aspect(value = Controller.class)
-@Aspect(pointcut = "execution(* com.wander.controller.frontend..*.*(..))")
+@Aspect(pointcut = "execution(* com.wander.controller.superadmin.HeadLineOperationController.*(..))")
 @Order(value = 1)
 public class ControllerTimeCalculatorAspect extends DefaultAspect {
     private long timestampCache;
