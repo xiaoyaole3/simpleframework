@@ -6,15 +6,17 @@ import org.simplespringframework.mvc.RequestProcessorChain;
 import org.simplespringframework.mvc.annotation.RequestMapping;
 import org.simplespringframework.mvc.annotation.RequestParam;
 import org.simplespringframework.mvc.processor.RequestProcessor;
+import org.simplespringframework.mvc.render.impl.ResourceNotFoundResultRender;
 import org.simplespringframework.mvc.type.ControllerMethod;
 import org.simplespringframework.mvc.type.RequestPathInfo;
+import org.simplespringframework.util.ConvertUtil;
 import org.simplespringframework.util.ValidationUtil;
 
+import javax.servlet.http.HttpServletRequest;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -102,6 +104,73 @@ public class ControllerRequestProcessor implements RequestProcessor {
 
     @Override
     public boolean process(RequestProcessorChain requestProcessorChain) throws Exception {
-        return false;
+        // 1. 解析HttpServletRequest的请求方法，请求路径，获取对应的ControllerMethod实例
+        String method = requestProcessorChain.getRequestMethod();
+        String requestPath = requestProcessorChain.getRequestPath();
+        ControllerMethod controllerMethod = this.pathControllerMethodMap.get(new RequestPathInfo(method, requestPath));
+        if (controllerMethod == null) {
+            requestProcessorChain.setResultRender(new ResourceNotFoundResultRender(method, requestPath));
+            return false;
+        }
+        // 2. 解析请求参数，并传递给获取到的ControllerMethod实例去执行
+        Object result = invokeControllerMethod(controllerMethod, requestProcessorChain.getRequest());
+        // 3. 根据解析的结果，选择对应的render进行渲染
+        setResultRender(result, controllerMethod, requestProcessorChain);
+        return true;
+    }
+
+    private void setResultRender(Object result, ControllerMethod controllerMethod, RequestProcessorChain requestProcessorChain) {
+    }
+
+    private Object invokeControllerMethod(ControllerMethod controllerMethod, HttpServletRequest request) {
+        // 1. 从请求里获取GET或者POST的参数名及其对应的值
+        Map<String, String> requestParamMap = new HashMap<>();
+        // 该方法只能支持获取get和post类型的值
+        Map<String, String[]> parameterMap = request.getParameterMap();
+        for (Map.Entry<String, String[]> parameter: parameterMap.entrySet()) {
+            if (ValidationUtil.isEmpty(parameter.getValue())) {
+                // 为了实现的简单，这里只支持一个参数对应一个值的形式
+                requestParamMap.put(parameter.getKey(), parameter.getValue()[0]);
+            }
+        }
+        // 2. 根据获取到的请求参数名及其对应的值，以及controllerMethod里面的参数和类型的映射关系，去实例化出方法对应的桉树
+        List<Object> methodParams = new ArrayList<>();
+        Map<String, Class<?>> methodParamMap = controllerMethod.getMethodParameters();
+        for (String paramName : methodParamMap.keySet()) {
+            Class<?> type = methodParamMap.get(paramName);
+            String requestValue = requestParamMap.get(paramName);
+
+            // 为了实现上的简单，只支持String以及基础类型char,int,short,byte,double,long,float,boolean及他们的包装类型
+            Object value;
+            if (requestValue == null) {
+                // 将请求里的参数值转成适配于参数类型的空值
+                value = ConvertUtil.primitiveNull(type);
+            } else {
+                value = ConvertUtil.convert(type, requestValue);
+            }
+            methodParams.add(value);
+        }
+
+        // 3. 执行Controller里面对应的方法并返回结果
+        Object controller = beanContainer.getBean(controllerMethod.getControllerClass());
+        Method invokeMethod = controllerMethod.getInvokeMethod();
+        invokeMethod.setAccessible(true);
+
+        Object result;
+        try {
+            if (methodParams.size() == 0) {
+                // 没有参数
+                result = invokeMethod.invoke(controller);
+            } else {
+                result = invokeMethod.invoke(controller, methodParams.toArray());
+            }
+        } catch (InvocationTargetException e) {
+            // 如果是调用异常的话可以通过 e.getTargetException()来获取执行方法抛出的异常
+            throw new RuntimeException(e.getTargetException());
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+
+        return result;
     }
 }
