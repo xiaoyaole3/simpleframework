@@ -12,6 +12,7 @@ import org.simplespringframework.mvc.processor.impl.JspRequestProcessor;
 import org.simplespringframework.mvc.processor.impl.PreRequestProcessor;
 import org.simplespringframework.mvc.processor.impl.StaticResourceRequestProcessor;
 
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -39,10 +40,12 @@ public class DispatcherServlet extends HttpServlet {
         new AspectWeaver().doAop2();
         new DependencyInjector().doIoc();
 
+        ServletContext servletContext = getServletContext();
+
         // 2. 初始化请求处理器责任链, 这里必须要按照指定顺序
         PROCESSORS.add(new PreRequestProcessor());
-        PROCESSORS.add(new StaticResourceRequestProcessor());
-        PROCESSORS.add(new JspRequestProcessor());
+        PROCESSORS.add(new StaticResourceRequestProcessor(servletContext));
+        PROCESSORS.add(new JspRequestProcessor(servletContext));
         PROCESSORS.add(new ControllerRequestProcessor());
     }
 

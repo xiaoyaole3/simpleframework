@@ -9,6 +9,6 @@ import org.simplespringframework.mvc.processor.RequestProcessor;
 public class PreRequestProcessor implements RequestProcessor {
     @Override
     public boolean process(RequestProcessorChain requestProcessorChain) throws Exception {
-        return false;
+        return true;
     }
 }
