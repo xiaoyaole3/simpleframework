@@ -11,9 +11,18 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+/**
+ * 运行时需要在虚拟机Run中配置如下参数
+ * clean tomcat7:run
+ */
 @Slf4j
 @WebServlet("/")
 public class DispatcherServlet extends HttpServlet {
+
+    @Override
+    public void init() throws ServletException {
+        log.debug("It's first run, after init, will not be execute.");
+    }
 
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
