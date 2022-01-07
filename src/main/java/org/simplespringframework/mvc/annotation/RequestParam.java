@@ -1,5 +1,7 @@
 package org.simplespringframework.mvc.annotation;
 
+import org.simplespringframework.mvc.type.RequestMethod;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -8,7 +10,7 @@ import java.lang.annotation.Target;
 /**
  * 请求的方法参数名称
  */
-@Target({ElementType.TYPE,ElementType.METHOD})
+@Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RequestParam {
     // 方法参数名称

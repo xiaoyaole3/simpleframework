@@ -6,7 +6,9 @@ import com.wander.service.solo.HeadLineService;
 import org.simplespringframework.core.annotation.Controller;
 import org.simplespringframework.inject.annotation.Autowired;
 import org.simplespringframework.mvc.annotation.RequestMapping;
+import org.simplespringframework.mvc.annotation.RequestParam;
 import org.simplespringframework.mvc.annotation.ResponseBody;
+import org.simplespringframework.mvc.type.ModelAndView;
 import org.simplespringframework.mvc.type.RequestMethod;
 
 import javax.servlet.http.HttpServletRequest;
@@ -21,9 +23,26 @@ public class HeadLineOperationController {
     @Autowired(value = "HeadLineServiceImpl")
     private HeadLineService headLineService;
 
-    public Result<Boolean> addHeadLine(HttpServletRequest req, HttpServletResponse resp) {
-        Boolean aBoolean = headLineService.addHeadLine(new HeadLine());
-        return new Result<>();
+    @RequestMapping(value = "/add", method = RequestMethod.POST)
+    public ModelAndView addHeadLine(@RequestParam("lineName") String lineName,
+                                    @RequestParam("lineLink") String lineLink,
+                                    @RequestParam("lineImg") String lineImg,
+                                    @RequestParam("priority") Integer priority) {
+        HeadLine headLine = new HeadLine();
+        headLine.setLineImg(lineImg);
+        headLine.setLineName(lineName);
+        headLine.setLineLink(lineLink);
+        headLine.setPriority(priority);
+        Boolean aBoolean = headLineService.addHeadLine(headLine);
+
+        Result<Boolean> result = new Result<>();
+        result.setCode(200);
+        result.setMsg("request success.");
+        result.setData(aBoolean);
+
+        ModelAndView modelAndView = new ModelAndView();
+        modelAndView.setView("addheadline.jsp").addViewData("result", result);
+        return modelAndView;
     };
 
     @RequestMapping(value = "/remove", method = RequestMethod.GET)

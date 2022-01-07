@@ -148,7 +148,7 @@ public class ControllerRequestProcessor implements RequestProcessor {
         // 该方法只能支持获取get和post类型的值
         Map<String, String[]> parameterMap = request.getParameterMap();
         for (Map.Entry<String, String[]> parameter: parameterMap.entrySet()) {
-            if (ValidationUtil.isEmpty(parameter.getValue())) {
+            if (!ValidationUtil.isEmpty(parameter.getValue())) {
                 // 为了实现的简单，这里只支持一个参数对应一个值的形式
                 requestParamMap.put(parameter.getKey(), parameter.getValue()[0]);
             }

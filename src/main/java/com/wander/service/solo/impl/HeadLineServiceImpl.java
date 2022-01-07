@@ -13,8 +13,8 @@ import java.util.List;
 public class HeadLineServiceImpl implements HeadLineService {
     @Override
     public Boolean addHeadLine(HeadLine headLine) {
-        log.info("addHeadLine run.");
-        return null;
+        log.info("Add head line info = {}", headLine.toString());
+        return true;
     }
 
     @Override

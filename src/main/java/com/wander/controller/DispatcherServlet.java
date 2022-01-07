@@ -33,7 +33,7 @@ public class DispatcherServlet extends HttpServlet {
         if (req.getServletPath().equals("/frontend/main") && req.getMethod().equals("GET")) {
             new MainPageController().getMainPageInfo(req, resp);
         } else if (req.getServletPath().equals("/super/admin/headline/add") && req.getMethod().equals("GET")) {
-            new HeadLineOperationController().addHeadLine(req, resp);
+//            new HeadLineOperationController().addHeadLine(req, resp);
         }
 
     }
