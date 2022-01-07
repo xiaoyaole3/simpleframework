@@ -6,12 +6,15 @@ import com.wander.service.combine.HeadShopCombineService;
 import lombok.Getter;
 import org.simplespringframework.core.annotation.Controller;
 import org.simplespringframework.inject.annotation.Autowired;
+import org.simplespringframework.mvc.annotation.RequestMapping;
+import org.simplespringframework.mvc.type.RequestMethod;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 @Controller
 @Getter
+@RequestMapping(value = "/main")
 public class MainPageController {
 
     @Autowired(value = "HeadShopCombineServiceImpl")
@@ -24,5 +27,10 @@ public class MainPageController {
         result.setMsg("");
         result.setData(mainPageInfo);
         return result;
+    }
+
+    @RequestMapping(value = "/test", method = RequestMethod.GET)
+    public void throwException() {
+        throw new RuntimeException("Test throw Exception.");
     }
 }
