@@ -9,6 +9,7 @@ import org.simplespringframework.mvc.render.ResultRender;
 public class DefaultResultRender implements ResultRender {
     @Override
     public void render(RequestProcessorChain requestProcessorChain) throws Exception {
-
+        int responseCode = requestProcessorChain.getResponseCode();
+        requestProcessorChain.getResponse().setStatus(responseCode);
     }
 }

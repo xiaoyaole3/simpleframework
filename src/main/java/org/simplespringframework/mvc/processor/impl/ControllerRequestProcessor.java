@@ -5,8 +5,12 @@ import org.simplespringframework.core.BeanContainer;
 import org.simplespringframework.mvc.RequestProcessorChain;
 import org.simplespringframework.mvc.annotation.RequestMapping;
 import org.simplespringframework.mvc.annotation.RequestParam;
+import org.simplespringframework.mvc.annotation.ResponseBody;
 import org.simplespringframework.mvc.processor.RequestProcessor;
+import org.simplespringframework.mvc.render.ResultRender;
+import org.simplespringframework.mvc.render.impl.JsonResultRender;
 import org.simplespringframework.mvc.render.impl.ResourceNotFoundResultRender;
+import org.simplespringframework.mvc.render.impl.ViewResultRender;
 import org.simplespringframework.mvc.type.ControllerMethod;
 import org.simplespringframework.mvc.type.RequestPathInfo;
 import org.simplespringframework.util.ConvertUtil;
@@ -71,29 +75,28 @@ public class ControllerRequestProcessor implements RequestProcessor {
                     // 获取被标记的参数的数据类型，简历参数名和参数类型的映射
                     HashMap<String, Class<?>> methodParams = new HashMap<>();
                     Parameter[] parameters = method.getParameters();
-                    if (ValidationUtil.isEmpty(parameters)) {
-                        continue;
-                    }
-                    for (Parameter parameter : parameters) {
-                        RequestParam paramAnnotation = parameter.getAnnotation(RequestParam.class);
-                        // 为了实现简单，目前暂定为Controller方法里面所有的参数都需要@RequestParam注解
-                        if (paramAnnotation == null) {
-                            throw new RuntimeException("The parameter must have @RequestParam.");
+                    if (!ValidationUtil.isEmpty(parameters)) {
+                        for (Parameter parameter : parameters) {
+                            RequestParam paramAnnotation = parameter.getAnnotation(RequestParam.class);
+                            // 为了实现简单，目前暂定为Controller方法里面所有的参数都需要@RequestParam注解
+                            if (paramAnnotation == null) {
+                                throw new RuntimeException("The parameter must have @RequestParam.");
+                            }
+                            methodParams.put(paramAnnotation.value(), parameter.getType());
                         }
-                        methodParams.put(paramAnnotation.value(), parameter.getType());
-
-
-                        // 4. 将获取到的信息封装成RequestPathInfo实例和ControllerMethod实例，放置到映射表里
-                        String httpMethod = String.valueOf(methodAnnotation.method());
-                        RequestPathInfo requestPathInfo = new RequestPathInfo(httpMethod, url);
-                        if (this.pathControllerMethodMap.containsKey(requestPathInfo)) {
-                            log.warn("duplicate url:{} registration, current class {} method {} will override the former one",
-                                    requestPathInfo.getHttpPath(), requestMappingClass.getName(), method.getName());
-
-                        }
-                        ControllerMethod controllerMethod = new ControllerMethod(requestMappingClass, method, methodParams);
-                        this.pathControllerMethodMap.put(requestPathInfo, controllerMethod);
                     }
+
+                    // 4. 将获取到的信息封装成RequestPathInfo实例和ControllerMethod实例，放置到映射表里
+                    String httpMethod = String.valueOf(methodAnnotation.method());
+                    RequestPathInfo requestPathInfo = new RequestPathInfo(httpMethod, url);
+                    if (this.pathControllerMethodMap.containsKey(requestPathInfo)) {
+                        log.warn("duplicate url:{} registration, current class {} method {} will override the former one",
+                                requestPathInfo.getHttpPath(), requestMappingClass.getName(), method.getName());
+
+                    }
+                    ControllerMethod controllerMethod = new ControllerMethod(requestMappingClass, method, methodParams);
+                    this.pathControllerMethodMap.put(requestPathInfo, controllerMethod);
+
                 }
             }
         }
@@ -119,7 +122,24 @@ public class ControllerRequestProcessor implements RequestProcessor {
         return true;
     }
 
+    /**
+     * 根据不同的情况设置不同的渲染器
+     * @param result 结果
+     * @param controllerMethod Controller方法对象
+     * @param requestProcessorChain 请求链
+     */
     private void setResultRender(Object result, ControllerMethod controllerMethod, RequestProcessorChain requestProcessorChain) {
+        if (result == null) {
+            return;
+        }
+        ResultRender resultRender;
+        boolean isJson = controllerMethod.getInvokeMethod().isAnnotationPresent(ResponseBody.class);
+        if (isJson) {
+            resultRender = new JsonResultRender(result);
+        } else {
+            resultRender = new ViewResultRender(result);
+        }
+        requestProcessorChain.setResultRender(resultRender);
     }
 
     private Object invokeControllerMethod(ControllerMethod controllerMethod, HttpServletRequest request) {
