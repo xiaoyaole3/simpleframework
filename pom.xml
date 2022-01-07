@@ -76,6 +76,7 @@
                         <target>11</target>
                     </configuration>
                 </plugin>
+                <!-- 运行时需要在虚拟机Run中配置如下参数 clean tomcat7:run -->
                 <plugin>
                     <groupId>org.apache.tomcat.maven</groupId>
                     <artifactId>tomcat7-maven-plugin</artifactId>
