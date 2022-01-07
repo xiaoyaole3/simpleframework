@@ -6,6 +6,7 @@ import com.wander.service.solo.HeadLineService;
 import org.simplespringframework.core.annotation.Controller;
 import org.simplespringframework.inject.annotation.Autowired;
 import org.simplespringframework.mvc.annotation.RequestMapping;
+import org.simplespringframework.mvc.annotation.ResponseBody;
 import org.simplespringframework.mvc.type.RequestMethod;
 
 import javax.servlet.http.HttpServletRequest;
@@ -40,8 +41,10 @@ public class HeadLineOperationController {
         return new Result<>();
     }
 
-    public Result<List<HeadLine>> listHeadLine(HttpServletRequest req, HttpServletResponse resp) {
-        headLineService.listHeadLine(null, 1, 100);
-        return new Result<>();
+    @RequestMapping(value = "/query", method = RequestMethod.GET)
+    @ResponseBody
+    public Result<List<HeadLine>> listHeadLine() {
+        List<HeadLine> headLines = headLineService.listHeadLine(null, 1, 100);
+        return new Result<>(200, headLines);
     }
 }

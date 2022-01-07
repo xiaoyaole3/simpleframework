@@ -10,4 +10,18 @@ public class Result<T> {
     private String msg;
     // 请求返回的结果集
     private T data;
+
+    public Result() {
+    }
+
+    public Result(int code, String msg, T data) {
+        this.code = code;
+        this.msg = msg;
+        this.data = data;
+    }
+
+    public Result(int code, T data) {
+        this.code = code;
+        this.data = data;
+    }
 }
